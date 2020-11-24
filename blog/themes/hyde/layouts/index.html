@@ -1,5 +1,39 @@
 {{ define "main" -}}
 <div class="posts">
+  {{ range $index, $element := .Site.Taxonomies.categories }}
+    {{ range $element }}
+    {{ . }}
+    {{ end }}
+  {{ end }}
+  {{ range $index, $element := .Site.Taxonomies.tags }}
+  <ul class="sidebar-nav">
+  {{ if $index }}
+      <p>{{ $element }}</p>
+      <li class="tag-item">
+          <span class="tag">
+              <a href="{{ $element.Page.RelPermalink }}" class="is-tags taxo__link">
+                  {{ $element.Page.Title }} · {{ printf "%#v" (len $element) }}
+              </a>
+          </span>
+      </li>
+  {{ end }}
+  </ul>
+  {{ end }}
+  {{ range $.Site.Data.plan }}
+    <p>{{ . }}</p>
+    {{ $total := 0 }}
+    {{ range index . "items" }}
+    {{ $weight := (index . "weight")}}
+    {{ $total = add $total $weight }}
+    {{ end }}
+    <h1>{{ index . "name" }}</h1>
+    <progress max="{{ $total }}" value="5" id="progress"></progress>
+    <ul>
+    {{ range index . "items" }}
+      <li>{{ index . "name" }} ( {{ index . "weight" }} )</li>
+    {{ end }}
+    </ul>
+  {{ end }}
 {{ range .Site.RegularPages -}}
 <article class="post">
   <h1 class="post-title">
