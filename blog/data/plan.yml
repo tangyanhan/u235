@@ -3,12 +3,24 @@
   items:
   - name: slice
     weight: 2
+    items:
+    - name: go-growslice
+      weight: 2
   - name: map
     weight: 2
+    items:
+    - name: go-map
+      weight: 2
   - name: chan
     weight: 2
+    items:
+    - name: go-chan
+      weight: 2
   - name: mutex
     weight: 2
+    items:
+    - name: go-cas-mutex
+      weight: 1
   - name: goroutine
     weight: 5
   - name: GMP模型
@@ -17,9 +29,14 @@
     weight: 5
   - name: GC机制
     weight: 5
+    items:
+    - name: go-escape-analysis
+      weight: 1
   - name: 掌握白盒与黑盒压测工具
     weight: 5
   - name: Go性能调优
+    weight: 10
+  - name: Go杂谈
     weight: 10
 - name: 算法基础
   keyword: algo
@@ -57,6 +74,11 @@
     weight: 3
   - name: BPF原理与优化实践
     weight: 10
+    items:
+    - name: bpf-tutorial-1
+      weight: 1
+    - name: bpf-tutorial-2
+      weight: 1
   - name: cgroupv1管控机制与应用
     weight: 3
   - name: cgroupv2管控机制与应用
@@ -70,19 +92,40 @@
 - name: 云原生
   keyword: k8s
   items:
-  - name: k8s基础应用
+  - name: k8s基础
     weight: 20
-  - name: istio基础应用
+    items:
+    - name: kubernetes-install-binary
+      weight: 0.5
+    - name: virtualbox-cluster
+      weight: 0.5
+    - name: calico-multicard
+      weight: 0.5
+  - name: helm基础
+    weight: 4
+    items:
+    - name: helm-1-use
+      weight: 0.5
+    - name: helm-2-create
+      weight: 0.5
+    - name: helm-3-tips
+      weight: 0.5
+    - name: helm-4-cap
+      weight: 0.5
+  - name: istio基础
     weight: 20
-  - name: knative基础应用
+  - name: knative基础
     weight: 15
-  - name: runc实现机制
+  - name: k8s源码解读
+    weight: 20
+    items:
+    - name: k8s-election
+      weight: 1
+    - name: k8s-scheduler
+      weight: 2
+  - name: runc源码解读
     weight: 5
-  - name: cri-o实现机制
-    weight: 5
-  - name: kube-proxy源码阅读及解析
-    weight: 5
-  - name: k8s调度机制原理与应用
+  - name: cri-o源码解读
     weight: 5
   - name: k8s网络模型及对性能影响分析
     weight: 5
