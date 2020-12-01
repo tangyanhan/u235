@@ -1,4 +1,4 @@
-- name: Go开发专家
+- name: Golang
   keyword: go
   items:
   - name: slice
@@ -9,7 +9,7 @@
   - name: map
     weight: 2
     items:
-    - name: go-map
+    - Name: go-map
       weight: 2
   - name: chan
     weight: 2
