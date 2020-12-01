@@ -1,4 +1,3 @@
 blog/public
-blog/config.yaml
 blog/*.tar.gz
 blog/upload.sh

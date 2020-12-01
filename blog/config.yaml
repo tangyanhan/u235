@@ -1,0 +1,27 @@
+baseURL: "https://ethantang.top/"
+languageCode: "zh-cn"
+title: "Ethan Tang"
+theme: hyde
+math: true
+
+menus:
+  main:
+  - name: Github
+    url: 'https://github.com/tangyanhan/'
+  - name: LinkedIn
+    url: 'https://www.linkedin.com/in/ethan-tang-6063177a/'
+params:
+  description: 'Ethan Tang technical share'
+  copyright: Yanhan Tang
+  themeColor: "theme-base-0b"
+  beian: 苏ICP备19057256号-1
+  math: true
+
+  enableSidebarTags: true
+
+  # footer
+  showPoweredBy: true
+  showFeedLinks: true
+  enableThemeChange: false
+  themeOptions: ["dark"]
+

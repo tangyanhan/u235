@@ -1,0 +1,23 @@
+<div>
+    {{ range $.Site.Data.plan }}
+    {{ $total := 0 }}
+    {{ $done := 0 }}
+    {{ range index . "items" }}
+    {{ $weight := (index . "weight")}}
+    {{ $total = add $total $weight }}
+      {{- range index . "items" -}}
+      {{ $doneWeight := (index . "weight") }}
+      {{- $done = add $done $doneWeight -}}
+      {{- end -}}
+    {{ end }}
+    <h1>{{ index . "name" }}</h1>
+    <progress max="{{ $total }}" value="{{ $done }}" id="progress"></progress>
+    <ul>
+    {{ range index . "items" }}
+      <li>{{ index . "name" }} ( {{ index . "weight" }} )</li>
+      {{ range index . "items" }}
+      {{ end }}
+    {{ end }}
+    </ul>
+  {{ end }}
+</div>

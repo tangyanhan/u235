@@ -1,0 +1,157 @@
+- name: Golang
+  keyword: go
+  items:
+  - name: slice
+    weight: 2
+    items:
+    - name: go-growslice
+      weight: 2
+  - name: map
+    weight: 2
+    items:
+    - Name: go-map
+      weight: 2
+  - name: chan
+    weight: 2
+    items:
+    - name: go-chan
+      weight: 2
+  - name: mutex
+    weight: 2
+    items:
+    - name: go-cas-mutex
+      weight: 1
+  - name: goroutine
+    weight: 5
+  - name: GMP模型
+    weight: 5
+  - name: goroutine调度机制
+    weight: 5
+  - name: GC机制
+    weight: 5
+    items:
+    - name: go-escape-analysis
+      weight: 1
+  - name: 掌握白盒与黑盒压测工具
+    weight: 5
+  - name: Go性能调优
+    weight: 10
+  - name: Go杂谈
+    weight: 10
+- name: 算法基础
+  keyword: algo
+  items:
+  - name: 链表
+    weight: 2
+  - name: 树
+    weight: 5
+  - name: 图
+    weight: 10
+  - name: 动态规划
+    weight: 10
+  - name: 贪心算法
+    weight: 5
+  - name: 线性规划
+    weight: 5
+  - name: 分布式算法设计与实现
+    weight: 10
+- name: 内核与网络协议
+  keyword: kernel-network
+  items:
+  - name: GRPC使用及实现原理
+    weight: 2
+  - name: HTTP协议原理及性能调优
+    weight: 2
+  - name: HTTP2协议机制
+    weight: 5
+  - name: QUIC协议机制
+    weight: 5
+  - name: TCP协议模型
+    weight: 5
+  - name: TCP协议调试，参数调优
+    weight: 5
+  - name: DPDK原理与使用
+    weight: 3
+  - name: BPF原理与优化实践
+    weight: 10
+    items:
+    - name: bpf-tutorial-1
+      weight: 1
+    - name: bpf-tutorial-2
+      weight: 1
+  - name: cgroupv1管控机制与应用
+    weight: 3
+  - name: cgroupv2管控机制与应用
+    weight: 3
+  - name: 进程的内核调度机制与调控
+    weight: 5
+  - name: 内存的分配机制
+    weight: 5
+  - name: iptables:应用，原理与性能分析
+    weight: 10
+- name: 云原生
+  keyword: k8s
+  items:
+  - name: k8s基础
+    weight: 20
+    items:
+    - name: kubernetes-install-binary
+      weight: 0.5
+    - name: virtualbox-cluster
+      weight: 0.5
+    - name: calico-multicard
+      weight: 0.5
+  - name: helm基础
+    weight: 4
+    items:
+    - name: helm-1-use
+      weight: 0.5
+    - name: helm-2-create
+      weight: 0.5
+    - name: helm-3-tips
+      weight: 0.5
+    - name: helm-4-cap
+      weight: 0.5
+  - name: istio基础
+    weight: 20
+  - name: knative基础
+    weight: 15
+  - name: k8s源码解读
+    weight: 20
+    items:
+    - name: k8s-election
+      weight: 1
+    - name: k8s-scheduler
+      weight: 2
+  - name: runc源码解读
+    weight: 5
+  - name: cri-o源码解读
+    weight: 5
+  - name: k8s网络模型及对性能影响分析
+    weight: 5
+  - name: k8s Operator基本原理
+    weight: 5
+  - name: flannel组网实现原理
+    weight: 5
+  - name: kube-ovn源码阅读及实现原理
+    weight: 5
+  - name: kube-edge源码阅读及贡献
+    weight: 5
+  - name: istio关键CRD原理分析
+    weight: 5
+  - name: envoy关键代码分析
+    weight: 10
+  - name: nginx ingress controller源码分析
+    weight: 3
+  - name: kubelet及node controller源码分析
+    weight: 3
+  - name: NFS StorageClass实现分析
+    weight: 3
+  - name: HPA或KPA实现原理分析（高可用实现)
+    weight: 5
+  - name: ETCD高可用方案及原理分析
+    weight: 5
+
+
+
+
