@@ -23,5 +23,22 @@ params:
   showPoweredBy: true
   showFeedLinks: true
   enableThemeChange: false
-  themeOptions: ["dark"]
+  themeOptions: ["light"]
 
+markup:
+  tableOfContents:
+    endLevel: 4
+    ordered: false
+    startLevel: 1
+  highlight:
+    anchorLineNos: false
+    codeFences: true
+    guessSyntax: false
+    hl_Lines: ""
+    lineAnchors: ""
+    lineNoStart: 1
+    lineNos: false
+    lineNumbersInTable: true
+    noClasses: true
+    style: perldoc
+    tabWidth: 4
