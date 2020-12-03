@@ -1,6 +1,7 @@
 ---
 title: "有关端口的基本网络工具"
 date: 2020-12-03T14:00:51+08:00
+tags: "网络"
 ---
 
 # lsof(list open files)
