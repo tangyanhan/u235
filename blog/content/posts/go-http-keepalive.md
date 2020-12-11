@@ -34,9 +34,75 @@ Golang的HTTP Client通过`net/http/trasnport.go`中的`Transport`对象实现�
 
 在Dial建立连接后，就会开始进行读循环和写循环。在读循环中，能够获得HTTP Response，其中包括Header以及Body。当Body被读至末尾EOF，或者被手动关闭时，这个connection就被视为idle，可以回收用于其它请求了。
 
-在knative的[kafkasource](https://github.com/knative-sandbox/eventing-kafka)项目中, 由于错误的没有关闭，导致了一个http request无法有效复用连接的错误。在通过我的PR加入手动Close之后，QPS能够提升一倍以上：
+在发送请求后，如果Body里有东西，那么必须手动读取Body至EOF，并手动Close才能使其TCP连接得到复用。
 
-https://github.com/knative-sandbox/eventing-kafka/pull/239
+在`net/http/transport.go`中，这一段描述了这个逻辑:
+
+```go
+		waitForBodyRead := make(chan bool, 2)
+		body := &bodyEOFSignal{
+			body: resp.Body,
+			earlyCloseFn: func() error {
+				waitForBodyRead <- false
+				<-eofc // will be closed by deferred call at the end of the function
+				return nil
+
+			},
+			fn: func(err error) error {
+				isEOF := err == io.EOF
+				waitForBodyRead <- isEOF
+				if isEOF {
+					<-eofc // see comment above eofc declaration
+				} else if err != nil {
+					if cerr := pc.canceled(); cerr != nil {
+						return cerr
+					}
+				}
+				return err
+			},
+		}
+
+		/// ...
+				// Before looping back to the top of this function and peeking on
+		// the bufio.Reader, wait for the caller goroutine to finish
+		// reading the response body. (or for cancellation or death)
+		select {
+		case bodyEOF := <-waitForBodyRead:
+			pc.t.setReqCanceler(rc.cancelKey, nil) // before pc might return to idle pool
+			alive = alive &&
+				bodyEOF &&
+				!pc.sawEOF &&
+				pc.wroteRequest() &&
+				tryPutIdleConn(trace)
+			if bodyEOF {
+				eofc <- struct{}{}
+			}
+		case <-rc.req.Cancel:
+			alive = false
+			pc.t.CancelRequest(rc.req)
+		case <-rc.req.Context().Done():
+			alive = false
+			pc.t.cancelRequest(rc.cancelKey, rc.req.Context().Err())
+		case <-pc.closech:
+			alive = false
+		}
+```
+
+在下面这一句中:
+```go
+	alive = alive &&
+		bodyEOF &&
+		!pc.sawEOF &&
+		pc.wroteRequest() &&
+		tryPutIdleConn(trace)
+```
+只有符合以下条件的前提下，才能尝试将连接回收放入连接池：
+1. 开启KeepAlive
+2. Body读取到EOF
+3. TCP连接没有被关闭(`pc.sawEOF`)
+4. 请求已经彻底发送并成功
+
+返回码非2XX不影响回收，因为这是业务层的成功失败，而非HTTP/TCP本身的成功或失败。
 
 # 端口耗尽问题
 
