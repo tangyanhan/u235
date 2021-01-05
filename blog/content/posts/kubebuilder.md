@@ -1,6 +1,7 @@
 ---
 title: "Kubebuilder"
 date: 2020-12-29T13:58:33+08:00
+tags: "Kubernetes"
 ---
 
 ## 安装前置
