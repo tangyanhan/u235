@@ -19,7 +19,7 @@ katex: true
 
 ECN在Linux下可以通过`net.ipv4.tcp_ecn`与`net.ipv4.tcp_ecn_fallback`两个值配置。作为一个扩展，并非网络中所有的设备都支持该功能，因此并不能保证起作用。当`net.ipv4.tcp_ecn=1`时，TCP连接默认开启ECN，当其为2时，Linux将只对accept且开启了ECN的TCP连接启用ECN。 `net.ipv4.tcp_ecn_fallback`置为1，可以使TCP在尝试ECN失败时尝试不使用ECN。
 
-大部分拥塞控制算法都是基于以上方法，如reno, cubic等。也有一些算法尝试通过检测RTT的增大来预判拥塞的发生，例如vagas, westwood等。
+大部分拥塞控制算法都是基于以上方法，如reno, cubic等。也有一些算法尝试通过检测RTT的增大来预判拥塞的发生，例如vegas, westwood等。
 
 在日常生活中，也会经常听到说法“网络不好”，那么可以使用iperf测试TCP/UDP的网络状况：
 
