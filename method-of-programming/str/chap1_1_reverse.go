@@ -1,5 +1,10 @@
 package str
 
+import (
+	"bytes"
+	"strings"
+)
+
 // ReverseString reverse string part
 func ReverseString(s []rune, from, to int) {
 	for from < to {
@@ -22,3 +27,14 @@ func LeftRotateString(s string, m int) string {
 }
 
 // 题目：以单词为单位反转句子，句子单词以空格为间隔
+func ReverseSentence(s string) string {
+	p := strings.Split(s, " ")
+	var buf bytes.Buffer
+	for i := len(p) - 1; i >= 0; i-- {
+		buf.WriteString(p[i])
+		if i != 0 {
+			buf.WriteRune(' ')
+		}
+	}
+	return buf.String()
+}
