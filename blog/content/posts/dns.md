@@ -1,7 +1,7 @@
 ---
 title: "DNS懒人包"
 date: 2021-01-19T10:58:43+08:00
-draft: true
+tags: 网络
 ---
 
 一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。
