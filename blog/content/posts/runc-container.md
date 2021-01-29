@@ -190,7 +190,7 @@ runc最终的漏洞修复手段： 增加了一个`ensure_cloned_binary`阶段�
 
 docker cp是通过chroot的方式，切换到容器所在主机文件目录，然后从那里复制文件。这个chroot是docker自己实现的，需要依赖nsswitch相关动态库，这时可以通过在容器中替换这些动态库，从而实现借`docker cp`的高级权限，运行恶意代码的目的。
 
-官方的修复是让chroot在切换成容器目录之前就提前执行一次dns lookup，从而调用cgo，总体看上去还是稍微优点魔幻的: https://github.com/moby/moby/pull/39612/files
+官方的修复是让chroot在切换成容器目录之前就提前执行一次dns lookup，从而调用cgo，总体看上去还是稍微有点魔幻的: https://github.com/moby/moby/pull/39612/files
 
 ```go
 func init() {
