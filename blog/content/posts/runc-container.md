@@ -1,8 +1,7 @@
 ---
-title: "Runc容器运行过程及两个逃逸漏洞原理"
+title: "Runc容器运行过程及容器逃逸原理"
 date: 2021-01-28T09:13:11+08:00
-draft: true
-tags: "Kubernetes" "安全"
+tags: ["Kubernetes", "安全"]
 ---
 
 在每一个Kubernetes节点中，运行着kubelet，负责为Pod创建销毁容器，kubelet预定义了API接口，通过GRPC从指定的位置调用特定的API进行相关操作。而这些CRI的实现者，如cri-o, containerd等，通过调用runc创建出容器。runc功能相对单一，即针对特定的配置，构建出容器运行指定进程，它不能直接用来构建镜像，kubernetes依赖的如cri-o这类CRI，在runc基础上增加了通过API管理镜像，容器等功能。
@@ -129,9 +128,87 @@ Cgroup Namespace隔离出了新的cgroup分组，可以通过`/proc/[PID]/cgroup
 
 挂载文件系统的隔离，但是一部分文件系统也可以通过共享跨命名空间共享。通过`cat /proc/self/mountinfo`可以获得挂载信息，带有`shared`标志的就是共享出来的部分。
 
-## 逃逸漏洞分析
+## runc容器初始化流程
 
+runc目前初始化大致流程如下图所示，其中一些步骤经过了简化：
 
+![runc-workflow](/images/post/runc-workflow.png)
 
+通过在init.go中隐式的导入包： `import _ "github.com/opencontainers/runc/libcontainer/nsenter"`， runc在初始化阶段就完成了`clone/unshare`过程，创建出子进程，并将其通过`setns`放入新的命名空间:
+
+```c
+    /*libcontainer/nsenter/nsexec.c:join_namespaces(char*)*/
+	for (i = 0; i < num; i++) {
+		struct namespace_t ns = namespaces[i];
+
+		if (setns(ns.fd, ns.ns) < 0)
+			bail("failed to setns to %s", ns.path);
+
+		close(ns.fd);
+	}
+```
+
+一般来说，只要通过clone/share+setns+execve就可以完成容器的基本运行过程，在发现漏洞[CVE-2019-5736]之后，runc加入了一段重要代码`ensure_cloned_binary`，确保当前runc是通过memfd在内存中克隆出来并重新运行的。
+
+## 容器逃逸
+
+### "特权"容器
+
+"特权"在runc及基于containerd的docker中， 对应选项是`--privileged`，在K8S中对应的是`pod.Spec.privileged: true`，但它的特权实际指的是User Namespace中的Capabilities，即启动容器时用户的Capabilities将会全部被保持，不会为了构建沙箱而扔掉权限，这样容器就可以执行各种特权操作，例如挂载文件系统，改写主机iptables，改写主机Ipvs等。因此对于像kube-proxy这类需要改写主机网络的组件，一些容器，可能还会需要访问特定的蓝牙设备或GPU等，它们要正常工作，就必须拥有特权。
+
+但这种特权实际已经是“超级特权”了，必须经过谨慎的权衡使用，一般不会被普通用户滥用。容器面临的权限安全问题，更多的是来自UID/GID映射。
+
+通过User Namespace，我们可以将主机/上级namespace中的一个普通用户映射成子namespace中的一个特权用户root或者其它，反之则不行。但是Linux的权限系统是通过UID/GID来辨认用户的，当一个容器中的UID 0用户在主机中被映射成UID 0时，那么容器中的进程如果能够访问主机上的文件，它实际等同于root(UID=0)，这时候就有了逃逸的机会。所谓容器逃逸，就是容器中的进程通过某种方式改写主机环境，从容器这个平行世界中“逃脱”，改变主世界。在容器中它可能只是个“村长”，但由于它的UID与外面的“国王”相等，一旦逃逸发生，它就等同于拥有“国王”权限，可以对外发布更高权限的命令。
+
+对此，我们可以在主世界创建一个“村长”(UID=65535)，然后将有限的领土“村级行政区”划分给他，然后映射到子命名空间中做“国王”(root,UID=65535)，这样即使容器中的国王逃出来，它依然只能治理之前划分给它的那一小块“村级行政区“。
+
+更多关于“特权”容器的讨论可以参考LXC作者的[这篇博客](https://brauner.github.io/2019/02/12/privileged-containers.html)。
+
+### CVE-2019-5736: 改写runc容器逃逸
+
+在2019年初，爆发了一个容器严重漏洞，运行docker的容器环境，普通用户可以通过特殊构建的镜像，运行后改写主机上的runc,从而进一步进行入侵操作。
+
+当一个进程运行时，它自己可以通过`/proc/self/exe`得到指向自己的链接，也可以进一步在`/proc`目录下找到自己的fd。一个恶意构建的镜像可以将自己的入口改成`/proc/self/exe`，由于容器入口需要通过runc来clone+execve启动，这样就使得一个普通的用户容器，访问并执行了主机上的runc。
+
+之前编译runc的步骤中，我们也已经知道了，runc使用了CGO来调用libc/libseccomp的代码，通过`ldd`命令可以看到runc的外部依赖库:
+
+![ldd_runc](/images/post/Screenshot_20210129_104309.png)
+
+在之前的runc容器初始化流程中，我们直到当容器开始执行我们的程序时，已经进入了新的namespace，这时程序如果需要外部依赖什么文件，一定会从容器内寻找，这时我们可以通过修改容器的`LD_LIBRARY`环境变量，迫使runc优先使用改造过的`.so`文件，而这个`.so`的作用，就是改写`/proc/self/exe`指向的文件，即主机上的runc。
+
+在这个漏洞中，我们可以看到它需要满足几个条件：
+
+1. 容器能够通过入口`/proc/self/exe`指向主机中的runc
+2. 容器允许用户自行任意指定，将其中的恶意代码伪装成普通文件
+3. 容器中的用户UID在主机中的映射UID同样具有较高权限，否则即使runc被暴露，也会因为容器中用户权限不足而无法访问
+
+runc最终的漏洞修复手段： 增加了一个`ensure_cloned_binary`阶段，通过在内存中只读的复制自己并`clone`，避免了`/proc/self/exe`指向主机runc的问题。
+
+### CVE-2019-14271: 通过docker-cp容器逃逸
+
+这个漏洞是指当运行docker的环境中调用`docker cp`时，如果访问的是一个恶意容器，容器中的用户就可以在主机中运行任意代码。
+
+docker cp是通过chroot的方式，切换到容器所在主机文件目录，然后从那里复制文件。这个chroot是docker自己实现的，需要依赖nsswitch相关动态库，这时可以通过在容器中替换这些动态库，从而实现借`docker cp`的高级权限，运行恶意代码的目的。
+
+官方的修复是让chroot在切换成容器目录之前就提前执行一次dns lookup，从而调用cgo，总体看上去还是稍微优点魔幻的: https://github.com/moby/moby/pull/39612/files
+
+```go
+func init() {
+	// initialize nss libraries in Glibc so that the dynamic libraries are loaded in the host
+	// environment not in the chroot from untrusted files.
+	_, _ = user.Lookup("docker")
+	_, _ = net.LookupHost("localhost")
+}
+```
+
+### 小结
+
+从上面两个逃逸漏洞来看，仍然没有摆脱“特权用户运行恶意代码”的范畴。一些CRI如Cri-O，可以通过修改`/etc/crio/crio.conf`中的`uid_mappings`及`gid_mappings`修改映射，从而避免容器逃逸后容器中的进程获取主机上的文件访问权限。这样做会有一些额外负担，就是如HostPath这类挂载，需要确保主机上这部分文件也能够被指定UID访问。
+
+另外通过扫描镜像，避免恶意镜像也可以起到一定作用。对于镜像准入需要采取一定的手段。
+
+K8S和docker/crio的特权模式一定慎用，可以把它跟root等同审慎对待，绝对不能开放给普通用户。
+
+关注容器生态安全漏洞，及时发现预警，避免修复不及时造成损失。
 
 
