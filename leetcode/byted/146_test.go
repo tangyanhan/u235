@@ -2,8 +2,14 @@ package byted
 
 import (
 	"container/list"
+	"runtime/debug"
 	"testing"
 )
+
+func init() {
+	debug.FreeOSMemory()
+	debug.SetGCPercent(-1)
+}
 
 type LRUCache struct {
 	list     *list.List
