@@ -1,17 +1,17 @@
 package microsoft
 
-type Node struct {
+type RNode struct {
 	Val    int
-	Next   *Node
-	Random *Node
+	Next   *RNode
+	Random *RNode
 }
 
-func copyRandomList(head *Node) *Node {
+func copyRandomList(head *RNode) *RNode {
 	if head == nil {
 		return nil
 	}
-	m := make(map[*Node]*Node)
-	result := &Node{}
+	m := make(map[*RNode]*RNode)
+	result := &RNode{}
 	p := head
 	cp := result
 	m[p] = result
@@ -20,7 +20,7 @@ func copyRandomList(head *Node) *Node {
 		m[p] = cp
 		p = p.Next
 		if p != nil {
-			cp.Next = &Node{}
+			cp.Next = &RNode{}
 			cp = cp.Next
 		}
 	}
