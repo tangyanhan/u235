@@ -1,39 +1,35 @@
 package microsoft
 
 import (
-	"math"
-	"sort"
 	"testing"
 )
 
 func coinChange(coins []int, amount int) int {
-	// TODO: fix this
-	sort.Ints(coins)
-	var changeRemainAmount func(int, int, uint32)
-	ans := uint32(math.MaxUint32)
-	changeRemainAmount = func(curCoin int, amount int, curCnt uint32) {
-		if amount == 0 {
-			if curCnt < ans {
-				ans = curCnt
+	// 状态： 金额i，使用coins拼组的最小数量dp[i]
+	// 转移方程： dp[i] = min( dp[i], min(dp[i-c0], ..., dp[i-cj])+1)
+	// dp[0] = 0
+	// dp[i-cj]+1，表示当金额达到i时，从i中扣掉金币cj，正好得到已经计算过的金额dp[i-cj]，这表示只要我们从该值加上一枚硬币cj，即可到达值i
+	// 只要我们找到所有“扣掉硬币j”+1的最小值，就得到了dp[i]
+	// 预先填充dp[0]以外的所有元素为10001(amount+1)，这样如果跳到某个不可能到达的值，就会计算出一个比amount更高的数值
+	dp := make([]int, amount+1)
+	for i := 1; i < len(dp); i++ {
+		dp[i] = 10001
+	}
+	for i := 1; i <= amount; i++ {
+		for j := 0; j < len(coins); j++ {
+			if coins[j] <= i {
+				v := dp[i-coins[j]] + 1
+				if v < dp[i] {
+					dp[i] = v
+				}
 			}
-			return
-		}
-		if curCoin < 0 {
-			return
-		}
-		coinValue := coins[curCoin]
-		maxNum := amount / coinValue
-		totalValue := maxNum * coinValue
-		for i := maxNum; maxNum >= 0 && curCnt+uint32(maxNum) < ans; maxNum-- {
-			changeRemainAmount(curCoin-1, amount-totalValue, curCnt+uint32(i))
-			totalValue -= coinValue
 		}
 	}
-	changeRemainAmount(len(coins)-1, amount, 0)
-	if ans == math.MaxUint32 {
+
+	if dp[amount] > amount {
 		return -1
 	}
-	return int(ans)
+	return dp[amount]
 }
 
 func Test_coinChange(t *testing.T) {
@@ -56,9 +52,9 @@ func Test_coinChange(t *testing.T) {
 		{
 			args: args{
 				coins:  []int{1},
-				amount: math.MaxInt32,
+				amount: 10000,
 			},
-			want: math.MaxInt32,
+			want: 10000,
 		},
 		{
 			args: args{
