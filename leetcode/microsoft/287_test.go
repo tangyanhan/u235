@@ -4,16 +4,14 @@ import "testing"
 
 // TODO: add the floyd circuit
 func findDuplicate(nums []int) int {
-	func findDuplicate(nums []int) int {
-		var m [3*10000 + 3]int
-		for _, v := range nums {
-			m[v]++
-			if m[v] != 1 {
-				return v
-			}
+	var m [3*10000 + 3]int
+	for _, v := range nums {
+		m[v]++
+		if m[v] != 1 {
+			return v
 		}
-		return -1
 	}
+	return -1
 }
 
 func Test_findDuplicate(t *testing.T) {
@@ -34,9 +32,9 @@ func Test_findDuplicate(t *testing.T) {
 			want: 2,
 		},
 		{
-			nums: []int{2,2,2,2,2},
+			nums: []int{2, 2, 2, 2, 2},
 			want: 2,
-		}
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
