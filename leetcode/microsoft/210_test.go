@@ -5,16 +5,6 @@ import (
 	"testing"
 )
 
-type Graph [][]int
-
-func (g Graph) AddEdge(from, to int) {
-	g[from][to] = 1
-}
-
-func (g Graph) RemoveEdge(from, to int) {
-	g[from][to] = 0
-}
-
 // GraphNode holds value
 type GraphNode struct {
 	Val     int
