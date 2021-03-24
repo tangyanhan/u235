@@ -3,58 +3,110 @@ package graph
 import (
 	"container/list"
 	"fmt"
+	"math"
 )
 
 // Graph instance
 type Graph struct {
-	Nodes map[int]*Node
+	Vertexs        map[int]*Vertex
+	NegativeWeight int
 }
 
-// Node node
-type Node struct {
-	Value  int
-	Childs []*Node
+// InitSingleSource initialize single source
+func (g *Graph) InitSingleSource(source *Vertex) {
+	for _, v := range g.Vertexs {
+		v.UpperBound = math.MaxInt32
+		v.Pi = nil
+	}
+	source.UpperBound = 0
 }
 
-// VisitNodeFunc defines how to visit node in DFS/BFS. depth starts from 0.
-type VisitNodeFunc func(node *Node, depth int) (shouldContinue bool)
+// Vertex node
+type Vertex struct {
+	Value      int
+	UpperBound int
+	Pi         *Vertex
+	Edges      *Edge
+	LastEdge   *Edge
+}
+
+// Relax u->v
+func (v *Vertex) Relax(edge *Edge) {
+	if edge.To.UpperBound > v.UpperBound+edge.Weight {
+		edge.To.UpperBound = v.UpperBound + edge.Weight
+		edge.To.Pi = v
+	}
+}
+
+// Edge edges
+type Edge struct {
+	To     *Vertex
+	Weight int
+
+	Next *Edge
+	Prev *Edge
+}
+
+// VisitVertexFunc defines how to visit node in DFS/BFS. depth starts from 0.
+type VisitVertexFunc func(vertex *Vertex, depth int) (shouldContinue bool)
 
 // New alloc new graph
 func New() *Graph {
 	return &Graph{
-		Nodes: make(map[int]*Node),
+		Vertexs: make(map[int]*Vertex),
 	}
 }
 
-// GetOrAddNode add node on non-exists
-func (g *Graph) GetOrAddNode(v int) *Node {
-	node, ok := g.Nodes[v]
+// GetOrAddVertex add node on non-exists
+func (g *Graph) GetOrAddVertex(v int) *Vertex {
+	node, ok := g.Vertexs[v]
 	if !ok {
-		node = &Node{
+		node = &Vertex{
 			Value: v,
 		}
-		g.Nodes[v] = node
+		g.Vertexs[v] = node
 	}
 	return node
 }
 
 // AddEdge add edge
-func (g *Graph) AddEdge(from, to int) {
-	fromNode := g.GetOrAddNode(from)
-	toNode := g.GetOrAddNode(to)
-	for _, child := range fromNode.Childs {
-		if child.Value == to {
+func (g *Graph) AddEdge(from, to, weight int) {
+
+	fromVertex := g.GetOrAddVertex(from)
+	toVertex := g.GetOrAddVertex(to)
+	for edge := fromVertex.Edges; edge != nil; edge = edge.Next {
+		if edge.To == toVertex {
+			if edge.Weight < 0 {
+				g.NegativeWeight -= edge.Weight
+			}
+			if weight < 0 {
+				g.NegativeWeight += weight
+			}
+			edge.Weight = weight
 			return
 		}
 	}
-	fromNode.Childs = append(fromNode.Childs, toNode)
+	if weight < 0 {
+		g.NegativeWeight += weight
+	}
+	edge := &Edge{
+		To:     toVertex,
+		Weight: weight,
+	}
+	if fromVertex.Edges == nil {
+		fromVertex.Edges = edge
+		fromVertex.LastEdge = edge
+		return
+	}
+	fromVertex.LastEdge.Next = edge
+	edge.Prev = fromVertex.LastEdge
 }
 
 // DFS depth first
-func (g *Graph) DFS(start *Node, fn VisitNodeFunc) {
+func (g *Graph) DFS(start *Vertex, fn VisitVertexFunc) {
 	visited := make(map[int]bool)
-	var visitNode func(node *Node, depth int) bool
-	visitNode = func(node *Node, depth int) bool {
+	var visitVertex func(node *Vertex, depth int) bool
+	visitVertex = func(node *Vertex, depth int) bool {
 		if node == nil {
 			return true
 		}
@@ -66,18 +118,18 @@ func (g *Graph) DFS(start *Node, fn VisitNodeFunc) {
 		if !fn(node, depth) {
 			return false
 		}
-		for _, child := range node.Childs {
-			if !visitNode(child, depth+1) {
+		for edge := node.Edges; edge != nil; edge = edge.Next {
+			if !visitVertex(edge.To, depth+1) {
 				return false
 			}
 		}
 		return true
 	}
-	visitNode(start, 0)
+	visitVertex(start, 0)
 }
 
 // BFS broad first
-func (g *Graph) BFS(start *Node, fn VisitNodeFunc) {
+func (g *Graph) BFS(start *Vertex, fn VisitVertexFunc) {
 	queue := list.New()
 	visited := make(map[int]bool)
 	queue.PushBack(start)
@@ -87,16 +139,16 @@ func (g *Graph) BFS(start *Node, fn VisitNodeFunc) {
 		length := queue.Len()
 		for i := 0; i < length; i++ {
 			p := queue.Front()
-			node := p.Value.(*Node)
+			node := p.Value.(*Vertex)
 			if !fn(node, depth) {
 				fmt.Println("Step=", depth)
 				return
 			}
 			queue.Remove(p)
-			for _, child := range node.Childs {
-				if !visited[child.Value] {
-					queue.PushBack(child)
-					visited[child.Value] = true
+			for edge := node.Edges; edge != nil; edge = edge.Next {
+				if !visited[edge.To.Value] {
+					queue.PushBack(edge.To)
+					visited[edge.To.Value] = true
 				}
 			}
 		}

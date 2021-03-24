@@ -13,7 +13,7 @@ func TestGraph_DFS(t *testing.T) {
 	type testCase struct {
 		name  string
 		edges [][]int
-		fn    VisitNodeFunc
+		fn    VisitVertexFunc
 		check func() string
 	}
 	tests := []testCase{
@@ -27,7 +27,7 @@ func TestGraph_DFS(t *testing.T) {
 				},
 			}
 			visited := make(map[int]bool)
-			c.fn = func(node *Node, depth int) bool {
+			c.fn = func(node *Vertex, depth int) bool {
 				visited[node.Value] = true
 				fmt.Println("Visited node:", node.Value, "Depth=", depth)
 				return true
@@ -48,13 +48,13 @@ func TestGraph_DFS(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := New()
 			for _, edge := range tt.edges {
-				g.AddEdge(edge[0], edge[1])
+				g.AddEdge(edge[0], edge[1], 0)
 			}
-			g.DFS(g.GetOrAddNode(0), tt.fn)
+			g.DFS(g.GetOrAddVertex(0), tt.fn)
 			if v := tt.check(); v != "" {
 				t.Fatal(v)
 			}
-			g.BFS(g.GetOrAddNode(0), func(node *Node, depth int) bool {
+			g.BFS(g.GetOrAddVertex(0), func(node *Vertex, depth int) bool {
 				fmt.Println("BFS - ", node.Value, "depth=", depth)
 				return node.Value != 5
 			})
