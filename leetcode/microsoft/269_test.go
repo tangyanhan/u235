@@ -12,22 +12,22 @@ func alienOrder(words []string) string {
 	vertexMap := make(map[byte]bool)
 	for i := 0; i < 100; i++ {
 		var newEdgeAdded bool
-		var lastWord string
+		var lastByte byte
 		// TODO: deal with remaining characters
 		for _, word := range words {
 			if i >= len(word) {
-				lastWord = ""
 				continue
 			}
-			if lastWord == "" {
+			if lastByte == 0 {
 				vertexMap[word[i]-'a'] = true
-				lastWord = word
+				lastByte = word[i]
 				newEdgeAdded = true
 				continue
 			}
-			if word[i] != lastWord[i] {
-				fmt.Println("Add:", string(lastWord[i]), "->", string(word[i]))
-				from := lastWord[i] - 'a'
+			fmt.Println("i=", i, "word=", word, string(lastByte), "->", string(word[i]))
+			if word[i] != lastByte {
+				fmt.Println("Add:", string(lastByte), "->", string(word[i]))
+				from := lastByte - 'a'
 				to := word[i] - 'a'
 				if g[from][to] {
 					continue
@@ -38,9 +38,10 @@ func alienOrder(words []string) string {
 					fmt.Println("Already got:", string(to+'a'), string(from+'a'))
 					return ""
 				}
+				newEdgeAdded = true
 				inDegree[to]++
 				g[from][to] = true
-				lastWord = word
+				lastByte = word[i]
 			}
 		}
 		if !newEdgeAdded {
@@ -91,6 +92,10 @@ func Test_alienOrder(t *testing.T) {
 		{
 			words: []string{"z", "zabcdefg"},
 			want:  "zabcdefg",
+		},
+		{
+			words: []string{"ac", "ab", "zc", "zb"},
+			want:  "acbz",
 		},
 	}
 	for _, tt := range tests {
