@@ -35,6 +35,9 @@ func (u *UnionSet) Find(x int) int {
 func (u *UnionSet) Join(x, y int) {
 	px := u.Find(x)
 	py := u.Find(y)
+	if px != py {
+		u.Count--
+	}
 	if u.Rank[x] <= u.Rank[y] {
 		u.Data[px] = py
 	} else {

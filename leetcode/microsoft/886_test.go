@@ -1,7 +1,6 @@
 package microsoft
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -42,41 +41,20 @@ func (q *intQueue) length() int {
 }
 
 func possibleBipartition(N int, dislikes [][]int) bool {
-	var g [2001][2001]bool
-	var inDegree [2001]int
-	vertexMap := make(map[int]bool)
+	set := NewUnionSet(N*2 + 1)
 	for _, pair := range dislikes {
-		fmt.Println(pair[0], "<->", pair[1])
-		g[pair[0]][pair[1]] = true
-		g[pair[1]][pair[0]] = true
-		inDegree[pair[0]]++
-		inDegree[pair[1]]++
-		vertexMap[pair[0]] = true
-		vertexMap[pair[1]] = true
-	}
-	fmt.Println(inDegree)
-	queue := newIntQueue(2000)
-	for i, v := range inDegree {
-		if v == 1 {
-			queue.push(i)
+		px := set.Find(pair[0])
+		py := set.Find(pair[1])
+		if px == py {
+			return false
 		}
+		disX := set.Find(pair[0] + N)
+		disY := set.Find(pair[1] + N)
+
+		set.Join(px, disY)
+		set.Join(py, disX)
 	}
-	var numVisited int
-	for queue.length() != 0 {
-		from := queue.pop()
-		fmt.Println("Visited:", from)
-		numVisited++
-		for to := range vertexMap {
-			if g[from][to] {
-				inDegree[to]--
-				inDegree[from]--
-				if inDegree[to] == 1 {
-					queue.push(to)
-				}
-			}
-		}
-	}
-	return len(vertexMap) == numVisited
+	return true
 }
 
 func Test_possibleBipartition(t *testing.T) {
