@@ -6,48 +6,6 @@ import (
 	"testing"
 )
 
-// UnionSet union
-type UnionSet struct {
-	Data  []int
-	Rank  []int
-	Count int
-}
-
-// NewUnionSet new union set
-func NewUnionSet(length int) *UnionSet {
-	data := make([]int, length)
-	rank := make([]int, length)
-	for i := range data {
-		data[i] = i
-		rank[i] = 1
-	}
-	return &UnionSet{Data: data, Rank: rank, Count: length}
-}
-
-func (u *UnionSet) Find(x int) int {
-	if u.Data[x] == x {
-		return x
-	}
-	u.Data[x] = u.Find(u.Data[x])
-	return u.Data[x]
-}
-
-func (u *UnionSet) Join(x, y int) {
-	px := u.Find(x)
-	py := u.Find(y)
-	if px != py {
-		u.Count--
-	}
-	if u.Rank[x] <= u.Rank[y] {
-		u.Data[px] = py
-	} else {
-		u.Data[py] = px
-	}
-	if u.Rank[px] == u.Rank[py] && px != py {
-		u.Rank[py]++
-	}
-}
-
 func validTreeBFS(n int, edges [][]int) bool {
 	g := make(map[int][]int)
 	color := make([]int, n+1)
