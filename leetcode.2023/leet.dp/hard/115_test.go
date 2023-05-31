@@ -7,6 +7,14 @@ func numDistinct(s string, t string) int {
 		return 0
 	}
 
+	for itt, tc := range t {
+		for its, sc := range s {
+			if tc == sc {
+
+			}
+		}
+	}
+
 	return 0
 }
 
