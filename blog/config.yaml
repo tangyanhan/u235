@@ -1,6 +1,6 @@
 baseURL: "https://tangyanhan.github.io/"
 languageCode: "zh-cn"
-title: "Ethan Tang"
+title: "E.T."
 theme: hyde
 math: true
 
@@ -11,7 +11,7 @@ menus:
   - name: LinkedIn
     url: 'https://www.linkedin.com/in/ethan-tang-6063177a/'
 params:
-  description: 'Ethan Tang technical share'
+  description: '汤某人的技术一言难尽'
   copyright: Yanhan Tang
   themeColor: "theme-base-0b"
   beian: 苏ICP备19057256号-1
