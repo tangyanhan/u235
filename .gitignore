@@ -1,3 +1,6 @@
 blog/public
 blog/*.tar.gz
 blog/upload.sh
+*.exe
+*.pdb
+learn-rust/target/
